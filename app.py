@@ -611,9 +611,10 @@ if os.path.exists(
         USED_FILE
     )
 
-    st.subheader(
-        "Använda tullid"
-    )
+  with st.expander(
+    "📋 Använda tullid",
+    expanded=False
+):
 
     st.dataframe(
         used,
