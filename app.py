@@ -102,7 +102,16 @@ input {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("LRN Lookup")
+st.markdown("""
+<div class="main-header">
+    <div class="main-title">
+        EPIROC RETURN LOOKUP
+    </div>
+    <div class="main-subtitle">
+        Customs Support Group • Import Operations
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ==================================================
 # HJÄLPFUNKTIONER
