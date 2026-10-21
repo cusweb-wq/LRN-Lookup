@@ -1,117 +1,90 @@
 import streamlit as st
 import pandas as pd
+import os
 
-st.set_page_config(page_title="LRN Lookup", layout="wide")
+DATA_FILE = "current_stock.csv"
+USED_FILE = "used_lrn.csv"
+
+st.set_page_config(
+    page_title="LRN Lookup",
+    layout="wide"
+)
 
 st.title("LRN Lookup")
 
-uploaded_file = st.file_uploader(
-    "Ladda upp exportfil (.csv)",
-    type=["csv"]
-)
+# ==========================
+# Ladda upp ny fil
+# ==========================
 
-if uploaded_file:
+with st.expander("Administration"):
 
-    df = pd.read_csv(
-    uploaded_file,
-    sep=";",
-    encoding="utf-8",
-    low_memory=False
-)
-
-    required_cols = [
-        "Country",
-        "Transaction quantity",
-        "Item number",
-        "EXPORT ID",
-        "Export datum"
-    ]
-
-    missing = [c for c in required_cols if c not in df.columns]
-
-    if missing:
-        st.error(f"Saknade kolumner: {missing}")
-        st.stop()
-
-    exports = (
-        df.groupby(
-            ["Item number", "Country", "EXPORT ID", "Export datum"],
-            as_index=False
-        )["Transaction quantity"]
-        .sum()
+    uploaded_file = st.file_uploader(
+        "Ladda upp ny exportfil",
+        type=["csv"]
     )
 
-    col1, col2, col3 = st.columns(3)
+    if uploaded_file:
 
-    with col1:
-        item = st.text_input("Artikelnummer")
-
-    with col2:
-        countries = sorted(exports["Country"].dropna().unique())
-        country = st.selectbox("Land", countries)
-
-    with col3:
-        qty = st.number_input(
-            "Antal",
-            min_value=1.0,
-            step=1.0
+        df = pd.read_csv(
+            uploaded_file,
+            sep=";",
+            encoding="utf-8",
+            low_memory=False
         )
 
-    if st.button("Hämta LRN"):
+        stock = (
+            df.groupby(
+                [
+                    "Item number",
+                    "Country",
+                    "EXPORT ID",
+                    "Export datum"
+                ],
+                as_index=False
+            )["Transaction quantity"]
+            .sum()
+        )
 
-        search = exports[
-            (exports["Item number"].astype(str) == item)
-            & (exports["Country"] == country)
-        ].copy()
+        stock.rename(
+            columns={
+                "Transaction quantity": "Remaining"
+            },
+            inplace=True
+        )
 
-        if search.empty:
-            st.warning("Ingen träff hittades.")
-            st.stop()
+        stock.to_csv(DATA_FILE, index=False)
 
-        try:
-            search["Export datum"] = pd.to_datetime(
-                search["Export datum"]
-            )
-        except:
-            pass
+        pd.DataFrame(
+            columns=[
+                "Artikelnummer",
+                "Land",
+                "LRN",
+                "Plockat antal"
+            ]
+        ).to_csv(USED_FILE, index=False)
 
-        search = search.sort_values("Export datum")
+        st.success("Ny fil inläst. Historik nollställd.")
 
-        remaining = qty
-        allocations = []
+# ==========================
+# Kontroll
+# ==========================
 
-        for _, row in search.iterrows():
+if not os.path.exists(DATA_FILE):
 
-            available = row["Transaction quantity"]
+    st.info(
+        "Ladda upp en exportfil under Administration."
+    )
 
-            if available <= 0:
-                continue
+    st.stop()
 
-            take = min(available, remaining)
+stock = pd.read_csv(DATA_FILE)
 
-            allocations.append({
-                "LRN": row["EXPORT ID"],
-                "Antal": take
-            })
+# ==========================
+# Sökning
+# ==========================
 
-            remaining -= take
+col1, col2, col3 = st.columns(3)
 
-            if remaining <= 0:
-                break
+with col1:
+    item = st.text_input("Artikelnummer")
 
-        if len(allocations) == 0:
-            st.error("Inga kvantiteter tillgängliga.")
-        else:
-            st.success("LRN hittades")
-
-            result = pd.DataFrame(allocations)
-
-            st.dataframe(
-                result,
-                use_container_width=True
-            )
-
-            if remaining > 0:
-                st.warning(
-                    f"Saknar {remaining} st för att täcka hela behovet."
-                )
