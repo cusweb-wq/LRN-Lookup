@@ -10,6 +10,98 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+
+/* Background */
+.stApp {
+    background: linear-gradient(180deg, #071220 0%, #0F1D34 100%);
+}
+
+/* Text */
+h1, h2, h3,
+label {
+    color: white !important;
+}
+
+p {
+    color: #d7dce3;
+}
+
+/* KPI Cards */
+.metric-card {
+    background: #14233f;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #00AAE7;
+    text-align: center;
+}
+
+.metric-title {
+    color: #AFC1D6;
+    font-size: 14px;
+}
+
+.metric-value {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Buttons */
+.stButton button {
+    background-color: #00AAE7 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    height: 45px !important;
+}
+
+.stButton button:hover {
+    background-color: #0091c8 !important;
+}
+
+/* Tables */
+[data-testid="stDataFrame"] {
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+/* Expanders */
+.streamlit-expanderHeader {
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* Inputs */
+input {
+    border-radius: 8px !important;
+}
+
+/* Header */
+.main-header {
+    background: linear-gradient(90deg, #08213D, #0B335E);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.main-title {
+    color: white;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.main-subtitle {
+    color: #c7d2df;
+    font-size: 16px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 st.title("LRN Lookup")
 
 # ==================================================
