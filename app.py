@@ -13,7 +13,26 @@ st.set_page_config(
 st.title("LRN Lookup")
 
 # ==================================================
-# ADMINISTRATION
+# HJÄLPFUNKTIONER
+# ==================================================
+
+def normalize_item(value):
+
+    try:
+
+        value = str(value).strip()
+
+        if value.endswith(".0"):
+            value = value[:-2]
+
+        return value
+
+    except:
+
+        return str(value)
+
+# ==================================================
+# ADMIN
 # ==================================================
 
 with st.expander("Administration"):
@@ -32,6 +51,12 @@ with st.expander("Administration"):
                 sep=";",
                 encoding="utf-8",
                 low_memory=False
+            )
+
+            df["Item number"] = (
+                df["Item number"]
+                .astype(str)
+                .apply(normalize_item)
             )
 
             stock = (
@@ -92,8 +117,14 @@ stock = pd.read_csv(
     low_memory=False
 )
 
+stock["Item number"] = (
+    stock["Item number"]
+    .astype(str)
+    .apply(normalize_item)
+)
+
 # ==================================================
-# FLERA ARTIKLAR
+# SÖKRADER
 # ==================================================
 
 st.subheader("Sök artiklar")
@@ -101,42 +132,41 @@ st.subheader("Sök artiklar")
 if "search_rows" not in st.session_state:
     st.session_state.search_rows = 1
 
-for i in range(st.session_state.search_rows):
+countries = sorted(
+    stock["Country"]
+    .dropna()
+    .unique()
+)
 
-    st.markdown(f"### Artikel {i+1}")
+for i in range(
+    st.session_state.search_rows
+):
 
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3 = st.columns([4, 2, 2])
 
-    with col1:
+    with c1:
+
         st.text_input(
-            "Artikelnummer",
+            f"Artikelnummer {i+1}",
             key=f"item_{i}"
         )
 
-    with col2:
-
-        countries = sorted(
-            stock["Country"]
-            .dropna()
-            .unique()
-        )
+    with c2:
 
         st.selectbox(
-            "Land",
+            f"Land {i+1}",
             countries,
             key=f"country_{i}"
         )
 
-    with col3:
+    with c3:
 
         st.number_input(
-            "Antal",
+            f"Antal {i+1}",
             min_value=1.0,
             step=1.0,
             key=f"qty_{i}"
         )
-
-st.divider()
 
 col1, col2 = st.columns(2)
 
@@ -154,41 +184,42 @@ with col2:
     )
 
 # ==================================================
-# SÖK ALLA
+# SÖKNING
 # ==================================================
 
 if search_all:
 
-    all_allocations = []
+    allocations = []
+
+    missing_items = []
 
     for i in range(
         st.session_state.search_rows
     ):
 
-        item = st.session_state.get(
-            f"item_{i}",
-            ""
-        )
-
-        country = st.session_state.get(
-            f"country_{i}",
-            ""
-        )
-
-        qty = st.session_state.get(
-            f"qty_{i}",
-            0
+        item = normalize_item(
+            st.session_state.get(
+                f"item_{i}",
+                ""
+            )
         )
 
         if item == "":
             continue
 
+        country = st.session_state.get(
+            f"country_{i}"
+        )
+
+        qty = st.session_state.get(
+            f"qty_{i}"
+        )
+
         search = stock[
             (
                 stock["Item number"]
-                .astype(str)
                 ==
-                str(item)
+                item
             )
             &
             (
@@ -205,6 +236,11 @@ if search_all:
         ].copy()
 
         if search.empty:
+
+            missing_items.append(
+                f"{item} ({country})"
+            )
+
             continue
 
         search["Export datum"] = pd.to_datetime(
@@ -222,15 +258,12 @@ if search_all:
 
             available = row["Remaining"]
 
-            if available <= 0:
-                continue
-
             take = min(
                 available,
                 remaining
             )
 
-            all_allocations.append(
+            allocations.append(
                 {
                     "row_index": index,
                     "Artikelnummer": item,
@@ -245,113 +278,139 @@ if search_all:
             if remaining <= 0:
                 break
 
-    st.session_state["allocations"] = (
-        all_allocations
-    )
+    st.session_state["allocations"] = allocations
+    st.session_state["missing_items"] = missing_items
 
 # ==================================================
-# VISA FÖRSLAG
+# RESULTAT
 # ==================================================
+
+if "missing_items" in st.session_state:
+
+    if len(
+        st.session_state["missing_items"]
+    ) > 0:
+
+        st.warning(
+            "Följande artiklar hittades inte:\n\n"
+            +
+            "\n".join(
+                st.session_state[
+                    "missing_items"
+                ]
+            )
+        )
 
 if "allocations" in st.session_state:
 
-    result = pd.DataFrame(
-        st.session_state["allocations"]
+    allocations = (
+        st.session_state[
+            "allocations"
+        ]
     )
 
-    st.subheader(
-        "Föreslagna tullid"
-    )
+    if len(allocations) == 0:
 
-    st.dataframe(
-        result[
-            [
-                "Artikelnummer",
-                "Land",
-                "LRN",
-                "Antal"
-            ]
-        ],
-        use_container_width=True
-    )
+        st.info(
+            "Inga tullid hittades."
+        )
 
-    if st.button("Plocka"):
+    else:
 
-        used_rows = []
+        result = pd.DataFrame(
+            allocations
+        )
 
-        for row in st.session_state["allocations"]:
+        st.subheader(
+            "Föreslagna tullid"
+        )
 
-            stock.loc[
-                row["row_index"],
-                "Remaining"
-            ] = (
+        st.dataframe(
+            result[
+                [
+                    "Artikelnummer",
+                    "Land",
+                    "LRN",
+                    "Antal"
+                ]
+            ],
+            use_container_width=True
+        )
+
+        if st.button(
+            "Plocka alla"
+        ):
+
+            used_rows = []
+
+            for row in allocations:
+
                 stock.loc[
                     row["row_index"],
                     "Remaining"
-                ]
-                -
-                row["Antal"]
-            )
+                ] -= row["Antal"]
 
-            used_rows.append(
-                {
-                    "Artikelnummer":
-                    row["Artikelnummer"],
+                used_rows.append(
+                    {
+                        "Artikelnummer":
+                        row["Artikelnummer"],
 
-                    "Land":
-                    row["Land"],
+                        "Land":
+                        row["Land"],
 
-                    "LRN":
-                    row["LRN"],
+                        "LRN":
+                        row["LRN"],
 
-                    "Plockat antal":
-                    row["Antal"]
-                }
-            )
-
-        stock = stock[
-            stock["Remaining"] > 0
-        ]
-
-        stock.to_csv(
-            DATA_FILE,
-            index=False
-        )
-
-        if os.path.exists(
-            USED_FILE
-        ):
-
-            used = pd.read_csv(
-                USED_FILE
-            )
-
-        else:
-
-            used = pd.DataFrame()
-
-        used = pd.concat(
-            [
-                used,
-                pd.DataFrame(
-                    used_rows
+                        "Plockat antal":
+                        row["Antal"]
+                    }
                 )
-            ],
-            ignore_index=True
-        )
 
-        used.to_csv(
-            USED_FILE,
-            index=False
-        )
+            stock = stock[
+                stock["Remaining"] > 0
+            ]
 
-        del st.session_state["allocations"]
+            stock.to_csv(
+                DATA_FILE,
+                index=False
+            )
 
-        st.success(
-            "Plockning genomförd."
-        )
+            if os.path.exists(
+                USED_FILE
+            ):
 
-        st.rerun()
+                used = pd.read_csv(
+                    USED_FILE
+                )
+
+            else:
+
+                used = pd.DataFrame()
+
+            used = pd.concat(
+                [
+                    used,
+                    pd.DataFrame(
+                        used_rows
+                    )
+                ],
+                ignore_index=True
+            )
+
+            used.to_csv(
+                USED_FILE,
+                index=False
+            )
+
+            del st.session_state[
+                "allocations"
+            ]
+
+            st.success(
+                "Plockning genomförd."
+            )
+
+            st.rerun()
 
 # ==================================================
 # STOCK
@@ -367,10 +426,12 @@ st.dataframe(
 )
 
 # ==================================================
-# ANVÄNDA TULLID
+# HISTORIK
 # ==================================================
 
-if os.path.exists(USED_FILE):
+if os.path.exists(
+    USED_FILE
+):
 
     used = pd.read_csv(
         USED_FILE
