@@ -12,7 +12,12 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file:
 
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(
+    uploaded_file,
+    sep=";",
+    encoding="utf-8",
+    low_memory=False
+)
 
     required_cols = [
         "Country",
