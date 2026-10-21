@@ -611,15 +611,14 @@ if os.path.exists(
         USED_FILE
     )
 
-  with st.expander(
-    "📋 Använda tullid",
-    expanded=False
-):
+ st.subheader(
+    "Använda tullid"
+)
 
-    st.dataframe(
-        used,
-        use_container_width=True
-    )
+st.dataframe(
+    used,
+    use_container_width=True
+)
 
     st.download_button(
         label="Exportera använda tullid",
