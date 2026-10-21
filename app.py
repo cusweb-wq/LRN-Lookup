@@ -589,14 +589,15 @@ if "allocations" in st.session_state:
 # STOCK
 # ==================================================
 
-st.subheader(
-    "Aktuell stock"
-)
+with st.expander(
+    "📦 Aktuell stock",
+    expanded=False
+):
 
-st.dataframe(
-    stock,
-    use_container_width=True
-)
+    st.dataframe(
+        stock,
+        use_container_width=True
+    )
 
 # ==================================================
 # HISTORIK
