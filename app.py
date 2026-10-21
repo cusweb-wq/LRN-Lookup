@@ -93,61 +93,119 @@ stock = pd.read_csv(
 )
 
 # ==================================================
-# SÖKFÄLT
+# FLERA ARTIKLAR
 # ==================================================
 
-st.subheader("Sök artikel")
+st.subheader("Sök artiklar")
 
-col1, col2, col3 = st.columns(3)
+if "search_rows" not in st.session_state:
+    st.session_state.search_rows = 1
+
+for i in range(st.session_state.search_rows):
+
+    st.markdown(f"### Artikel {i+1}")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.text_input(
+            "Artikelnummer",
+            key=f"item_{i}"
+        )
+
+    with col2:
+
+        countries = sorted(
+            stock["Country"]
+            .dropna()
+            .unique()
+        )
+
+        st.selectbox(
+            "Land",
+            countries,
+            key=f"country_{i}"
+        )
+
+    with col3:
+
+        st.number_input(
+            "Antal",
+            min_value=1.0,
+            step=1.0,
+            key=f"qty_{i}"
+        )
+
+st.divider()
+
+col1, col2 = st.columns(2)
 
 with col1:
 
-    item = st.text_input(
-        "Artikelnummer"
-    )
+    if st.button("Lägg till fler"):
+
+        st.session_state.search_rows += 1
+        st.rerun()
 
 with col2:
 
-    countries = sorted(
-        stock["Country"]
-        .dropna()
-        .unique()
-    )
-
-    country = st.selectbox(
-        "Land",
-        countries
-    )
-
-with col3:
-
-    qty = st.number_input(
-        "Antal",
-        min_value=1.0,
-        step=1.0
+    search_all = st.button(
+        "Sök alla"
     )
 
 # ==================================================
-# HÄMTA LRN
+# SÖK ALLA
 # ==================================================
 
-if st.button("Hämta LRN"):
+if search_all:
 
-    search = stock[
-        (stock["Item number"].astype(str) == item)
-        &
-        (stock["Country"] == country)
-        &
-        (stock["Remaining"] > 0)
-    ].copy()
+    all_allocations = []
 
-    if search.empty:
+    for i in range(
+        st.session_state.search_rows
+    ):
 
-        st.warning(
-            "Ingen träff hittades."
+        item = st.session_state.get(
+            f"item_{i}",
+            ""
         )
 
-    else:
+        country = st.session_state.get(
+            f"country_{i}",
+            ""
+        )
+
+        qty = st.session_state.get(
+            f"qty_{i}",
+            0
+        )
+
+        if item == "":
+            continue
+
+        search = stock[
+            (
+                stock["Item number"]
+                .astype(str)
+                ==
+                str(item)
+            )
+            &
+            (
+                stock["Country"]
+                ==
+                country
+            )
+            &
+            (
+                stock["Remaining"]
+                >
+                0
+            )
+        ].copy()
+
+        if search.empty:
+            continue
 
         search["Export datum"] = pd.to_datetime(
             search["Export datum"],
@@ -159,7 +217,6 @@ if st.button("Hämta LRN"):
         )
 
         remaining = qty
-        allocations = []
 
         for index, row in search.iterrows():
 
@@ -173,9 +230,11 @@ if st.button("Hämta LRN"):
                 remaining
             )
 
-            allocations.append(
+            all_allocations.append(
                 {
                     "row_index": index,
+                    "Artikelnummer": item,
+                    "Land": country,
                     "LRN": row["EXPORT ID"],
                     "Antal": take
                 }
@@ -186,9 +245,9 @@ if st.button("Hämta LRN"):
             if remaining <= 0:
                 break
 
-        st.session_state["allocations"] = allocations
-        st.session_state["item"] = item
-        st.session_state["country"] = country
+    st.session_state["allocations"] = (
+        all_allocations
+    )
 
 # ==================================================
 # VISA FÖRSLAG
@@ -207,6 +266,8 @@ if "allocations" in st.session_state:
     st.dataframe(
         result[
             [
+                "Artikelnummer",
+                "Land",
                 "LRN",
                 "Antal"
             ]
@@ -235,10 +296,10 @@ if "allocations" in st.session_state:
             used_rows.append(
                 {
                     "Artikelnummer":
-                    st.session_state["item"],
+                    row["Artikelnummer"],
 
                     "Land":
-                    st.session_state["country"],
+                    row["Land"],
 
                     "LRN":
                     row["LRN"],
