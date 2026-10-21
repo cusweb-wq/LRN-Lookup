@@ -345,7 +345,7 @@ col1, col2 = st.columns(2)
 
 with col1:
 
-    if st.button("Lägg till fler"):
+    if st.button("➕ Lägg till rad"):
 
         st.session_state.search_rows += 1
         st.rerun()
@@ -353,7 +353,7 @@ with col1:
 with col2:
 
     search_all = st.button(
-        "Sök alla"
+        "🔍 Sök alla"
     )
 
 # ==================================================
@@ -511,7 +511,7 @@ if "allocations" in st.session_state:
         )
 
         if st.button(
-            "Plocka alla"
+            "✅ Plocka alla"
         ):
 
             used_rows = []
