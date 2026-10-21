@@ -256,7 +256,11 @@ if search_all:
 if "allocations" in st.session_state:
 
     result = pd.DataFrame(
-        st.session_state["allocations"]
+    st.session_state["allocations"]
+)
+
+st.write(result.columns.tolist())
+st.write(result)
     )
 
     st.subheader(
