@@ -223,7 +223,79 @@ stock["Item number"] = (
     .astype(str)
     .apply(normalize_item)
 )
+active_lrn = stock["EXPORT ID"].nunique()
+active_items = stock["Item number"].nunique()
+active_countries = stock["Country"].nunique()
 
+used_count = 0
+
+if os.path.exists(USED_FILE):
+    try:
+        used_count = len(pd.read_csv(USED_FILE))
+    except:
+        pass
+
+c1, c2, c3, c4 = st.columns(4)
+
+with c1:
+    st.markdown(
+        f'''
+        <div class="metric-card">
+            <div class="metric-title">
+                Artiklar
+            </div>
+            <div class="metric-value">
+                {active_items}
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+
+with c2:
+    st.markdown(
+        f'''
+        <div class="metric-card">
+            <div class="metric-title">
+                Aktiva LRN
+            </div>
+            <div class="metric-value">
+                {active_lrn}
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+
+with c3:
+    st.markdown(
+        f'''
+        <div class="metric-card">
+            <div class="metric-title">
+                Länder
+            </div>
+            <div class="metric-value">
+                {active_countries}
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+
+with c4:
+    st.markdown(
+        f'''
+        <div class="metric-card">
+            <div class="metric-title">
+                Använda tullid
+            </div>
+            <div class="metric-value">
+                {used_count}
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
 # ==================================================
 # SÖKRADER
 # ==================================================
