@@ -609,13 +609,13 @@ with st.expander(
 # HISTORIK
 # ==================================================
 
-#if os.path.exists(
- #   USED_FILE
-#):
+if os.path.exists(
+    USED_FILE
+):
 
- #   used = pd.read_csv(
-  #      USED_FILE
- #   )
+    used = pd.read_csv(
+        USED_FILE
+    )
 
 with st.expander(
     "📋 Använda tullid",
