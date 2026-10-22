@@ -105,10 +105,6 @@ input {
     font-size: 16px;
 }
 
-h1 {
-    color: red !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
