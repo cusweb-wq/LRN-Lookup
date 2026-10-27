@@ -317,6 +317,8 @@ github_stock = github_download_file(
     "current_stock.csv"
 )
 
+st.write("GitHub stock:", github_stock)
+
 if github_stock:
 
     from io import StringIO
