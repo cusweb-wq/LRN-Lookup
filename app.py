@@ -313,10 +313,25 @@ if not os.path.exists(DATA_FILE):
 
     st.stop()
 
-stock = pd.read_csv(
-    DATA_FILE,
-    low_memory=False
+github_stock = github_download_file(
+    "current_stock.csv"
 )
+
+if github_stock:
+
+    from io import StringIO
+
+    stock = pd.read_csv(
+        StringIO(github_stock),
+        low_memory=False
+    )
+
+else:
+
+    stock = pd.read_csv(
+        DATA_FILE,
+        low_memory=False
+    )
 
 stock["Item number"] = (
     stock["Item number"]
