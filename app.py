@@ -6,6 +6,10 @@ import base64
 
 DATA_FILE = "current_stock.csv"
 USED_FILE = "used_lrn.csv"
+GITHUB_REPO = "cusweb-wq/LRN-Lookup"
+GITHUB_BRANCH = "main"
+
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 
 st.set_page_config(
     page_title="LRN Lookup",
