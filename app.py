@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
+import requests
+import base64
 
 DATA_FILE = "current_stock.csv"
 USED_FILE = "used_lrn.csv"
