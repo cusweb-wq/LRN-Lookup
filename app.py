@@ -289,7 +289,22 @@ with st.expander("Administration"):
 # ==================================================
 # KONTROLL
 # ==================================================
+try:
 
+    test = github_download_file(
+        "current_stock.csv"
+    )
+
+    st.success(
+        "GitHub connection OK"
+    )
+
+except Exception as e:
+
+    st.error(
+        f"GitHub connection failed: {e}"
+    )
+    
 if not os.path.exists(DATA_FILE):
 
     st.info(
