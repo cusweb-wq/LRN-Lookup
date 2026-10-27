@@ -162,6 +162,8 @@ def github_download_file(filename):
         url,
         headers=github_headers()
     )
+st.write("GitHub URL:", url)
+st.write("Status:", response.status_code)
 
     if response.status_code != 200:
         return None
