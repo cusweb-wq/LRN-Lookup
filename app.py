@@ -143,7 +143,80 @@ def normalize_item(value):
     except:
 
         return str(value)
+def github_headers():
 
+    return {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+
+
+def github_download_file(filename):
+
+    url = (
+        f"https://api.github.com/repos/"
+        f"{GITHUB_REPO}/contents/{filename}"
+    )
+
+    response = requests.get(
+        url,
+        headers=github_headers()
+    )
+
+    if response.status_code != 200:
+        return None
+
+    file_data = response.json()
+
+    content = base64.b64decode(
+        file_data["content"]
+    ).decode("utf-8")
+
+    return content
+
+
+def github_upload_file(
+    filename,
+    content
+):
+
+    url = (
+        f"https://api.github.com/repos/"
+        f"{GITHUB_REPO}/contents/{filename}"
+    )
+
+    existing = requests.get(
+        url,
+        headers=github_headers()
+    )
+
+    sha = None
+
+    if existing.status_code == 200:
+
+        sha = existing.json()["sha"]
+
+    payload = {
+        "message":
+        f"Update {filename}",
+
+        "content":
+        base64.b64encode(
+            content.encode("utf-8")
+        ).decode("utf-8"),
+
+        "branch":
+        GITHUB_BRANCH
+    }
+
+    if sha:
+        payload["sha"] = sha
+
+    requests.put(
+        url,
+        headers=github_headers(),
+        json=payload
+    )
 # ==================================================
 # ADMIN
 # ==================================================
