@@ -305,13 +305,13 @@ except Exception as e:
         f"GitHub connection failed: {e}"
     )
     
-if not os.path.exists(DATA_FILE):
-
-    st.info(
-        "Ladda upp en exportfil under Administration."
-    )
-
-    st.stop()
+#if not os.path.exists(DATA_FILE):
+#
+#    st.info(
+ #       "Ladda upp en exportfil under Administration."
+#    )
+#
+#    st.stop()
 
 github_stock = github_download_file(
     "current_stock.csv"
