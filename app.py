@@ -329,10 +329,11 @@ if github_stock:
 
 else:
 
-    stock = pd.read_csv(
-        DATA_FILE,
-        low_memory=False
+    st.error(
+        "epi_imp_art_web.csv kunde inte läsas från GitHub."
     )
+
+    st.stop()
 
 stock["Item number"] = (
     stock["Item number"]
