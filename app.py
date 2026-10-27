@@ -4,7 +4,7 @@ import os
 import requests
 import base64
 
-DATA_FILE = "current_stock.csv"
+MASTER_FILE = "epi_imp_art_web.csv"
 USED_FILE = "used_lrn.csv"
 GITHUB_REPO = "cusweb-wq/LRN-Lookup"
 GITHUB_BRANCH = "main"
@@ -314,10 +314,9 @@ except Exception as e:
 #    st.stop()
 
 github_stock = github_download_file(
-    "current_stock.csv"
+    "epi_imp_art_web.csv"
 )
 
-st.write("GitHub stock:", github_stock)
 
 if github_stock:
 
