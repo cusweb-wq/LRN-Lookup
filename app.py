@@ -313,27 +313,11 @@ except Exception as e:
 #
 #    st.stop()
 
-github_stock = github_download_file(
-    "epi_imp_art_web.csv"
+stock = pd.read_csv(
+    "epi_imp_art_web.csv",
+    sep=";",
+    low_memory=False
 )
-
-
-if github_stock:
-
-    from io import StringIO
-
-    stock = pd.read_csv(
-        StringIO(github_stock),
-        low_memory=False
-    )
-
-else:
-
-    st.error(
-        "epi_imp_art_web.csv kunde inte läsas från GitHub."
-    )
-
-    st.stop()
 
 stock["Item number"] = (
     stock["Item number"]
